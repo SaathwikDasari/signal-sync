@@ -1,0 +1,20 @@
+{
+  "name": "signal-sync",
+  "private": true,
+  "workspaces": [
+    "apps/dashboard",
+    "services/api",
+    "packages/contracts"
+  ],
+  "scripts": {
+    "postinstall": "npm run build -w @signal-sync/contracts",
+    "build": "npm run build -w @signal-sync/contracts && npm run build:rust && npm run build -w @signal-sync/api && npm run build -w @signal-sync/dashboard",
+    "build:rust": "cargo build --release -p signal-sync-core",
+    "dev": "concurrently -n api,dash -c blue,green \"npm run dev -w @signal-sync/api\" \"npm run dev -w @signal-sync/dashboard\"",
+    "dev:api": "npm run dev -w @signal-sync/api",
+    "dev:dashboard": "npm run dev -w @signal-sync/dashboard"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

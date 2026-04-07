@@ -1,0 +1,42 @@
+{
+  "meta": {
+    "name": "SignalSync demo city",
+    "description": "Data-driven network: load this file to change topology without code changes."
+  },
+  "nodes": [
+    { "id": "A", "label": "West", "x": 20, "y": 200, "zone": "residential", "tags": [] },
+    { "id": "B", "label": "North Hub", "x": 120, "y": 200, "zone": "mixed", "tags": ["arterial"] },
+    { "id": "C", "label": "Central", "x": 240, "y": 200, "zone": "commercial", "tags": ["arterial", "commercial"] },
+    { "id": "D", "label": "East Hub", "x": 360, "y": 200, "zone": "commercial", "tags": ["arterial", "commercial"] },
+    { "id": "E", "label": "East End", "x": 480, "y": 200, "zone": "residential", "tags": ["arterial"] },
+    { "id": "F", "label": "North Alt", "x": 120, "y": 60, "zone": "mixed", "tags": ["alternate"] },
+    { "id": "G", "label": "South St", "x": 60, "y": 320, "zone": "residential", "tags": ["side"] },
+    { "id": "H", "label": "Hospital", "x": 200, "y": 380, "zone": "hospital", "tags": ["hospital"] },
+    { "id": "I", "label": "Mall", "x": 260, "y": 320, "zone": "commercial", "tags": ["commercial", "side"] },
+    { "id": "J", "label": "Harbor", "x": 420, "y": 320, "zone": "mixed", "tags": ["side"] }
+  ],
+  "edges": [
+    { "id": "AB", "from": "A", "to": "B", "approach": "e", "capacity": 110, "arterial": true },
+    { "id": "BA", "from": "B", "to": "A", "approach": "w", "capacity": 110, "arterial": true },
+    { "id": "BC", "from": "B", "to": "C", "approach": "e", "capacity": 120, "arterial": true },
+    { "id": "CB", "from": "C", "to": "B", "approach": "w", "capacity": 120, "arterial": true },
+    { "id": "CD", "from": "C", "to": "D", "approach": "e", "capacity": 120, "arterial": true },
+    { "id": "DC", "from": "D", "to": "C", "approach": "w", "capacity": 120, "arterial": true },
+    { "id": "DE", "from": "D", "to": "E", "approach": "e", "capacity": 110, "arterial": true },
+    { "id": "ED", "from": "E", "to": "D", "approach": "w", "capacity": 110, "arterial": true },
+    { "id": "FA", "from": "F", "to": "A", "approach": "s", "capacity": 55, "arterial": false },
+    { "id": "AF", "from": "A", "to": "F", "approach": "n", "capacity": 55, "arterial": false },
+    { "id": "FB", "from": "F", "to": "B", "approach": "s", "capacity": 55, "arterial": false },
+    { "id": "BF", "from": "B", "to": "F", "approach": "n", "capacity": 55, "arterial": false },
+    { "id": "BG", "from": "B", "to": "G", "approach": "s", "capacity": 42, "arterial": false },
+    { "id": "GB", "from": "G", "to": "B", "approach": "n", "capacity": 42, "arterial": false },
+    { "id": "CI", "from": "C", "to": "I", "approach": "s", "capacity": 65, "arterial": false },
+    { "id": "IC", "from": "I", "to": "C", "approach": "n", "capacity": 65, "arterial": false },
+    { "id": "IH", "from": "I", "to": "H", "approach": "s", "capacity": 48, "arterial": false },
+    { "id": "HI", "from": "H", "to": "I", "approach": "n", "capacity": 48, "arterial": false },
+    { "id": "IJ", "from": "I", "to": "J", "approach": "e", "capacity": 52, "arterial": false },
+    { "id": "JI", "from": "J", "to": "I", "approach": "w", "capacity": 52, "arterial": false },
+    { "id": "DJ", "from": "D", "to": "J", "approach": "s", "capacity": 50, "arterial": false },
+    { "id": "JD", "from": "J", "to": "D", "approach": "n", "capacity": 50, "arterial": false }
+  ]
+}
