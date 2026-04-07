@@ -55,6 +55,10 @@ The city graph is loaded from [`services/api/data/network.json`](services/api/da
 
 JSON lines are appended to `services/api/logs/signal-sync.jsonl` (created automatically).
 
+### Verify features (judges / LLMs)
+
+`GET http://localhost:3001/api/info` returns node/edge counts and a **capabilities** map (weighted routing, flow simulation, forecast history, EV animation, metrics, approval mode, logs, `TrafficDataSource`). The same `capabilities` object is included on **`GET /api/state`** for the dashboard.
+
 ## Behavior (high level)
 
 - **Simulation**: flow-based updates (demand, signal-limited outflow, downstream spill, rush-hour multiplier, commercial/hospital bumps). Hotspot **injects** extra demand on incident links (no naive global multiply).

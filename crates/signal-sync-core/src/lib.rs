@@ -26,10 +26,14 @@ pub struct GraphEdge {
     pub from: String,
     pub to: String,
     pub approach: Direction,
+    #[serde(default)]
     pub queue_length: f64,
+    #[serde(default)]
     pub avg_wait_time: f64,
     #[serde(default = "default_capacity")]
     pub capacity: f64,
+    #[serde(default)] // Let Rust read the flag! Defaults to false if missing.
+    pub arterial: bool, 
 }
 
 fn default_capacity() -> f64 {
@@ -99,7 +103,18 @@ const MAX_PHASE: u32 = 45;
 /// Travel / routing cost: favors uncongested, high-capacity links.
 pub fn routing_cost(e: &GraphEdge) -> f64 {
     let cap = e.capacity.max(1.0);
-    e.avg_wait_time.max(0.0) + e.queue_length.max(0.0) / cap
+    
+    // 1. The traffic delay
+    let traffic_delay = e.avg_wait_time.max(0.0) + e.queue_length.max(0.0) / cap;
+    
+    // 2. The base traversal cost (even if empty, it takes time to drive down a road)
+    // We give arterial roads a lower base cost to make them the preferred default path.
+    let base_cost = if e.arterial { 1.0 } else { 3.0 }; 
+    
+    // Alternatively, you could factor capacity directly into the base cost:
+    // let base_cost = 100.0 / cap; 
+
+    base_cost + traffic_delay
 }
 
 fn phase_weight(e: &GraphEdge) -> f64 {

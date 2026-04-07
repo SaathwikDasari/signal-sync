@@ -16,20 +16,27 @@ type EmergencyVehicleApi = {
 
 type MetricsApi = {
   avgWaitGlobal: number;
+  /** Shadow baseline (fixed timing) metrics for A/B comparison. */
+  avgWaitShadow: number | null;
   maxCongestionEdgeId: string;
   maxCongestionLoad: number;
   totalVehicles: number;
+  totalVehiclesShadow: number | null;
   etaBefore: number | null;
   etaAfter: number | null;
   baselineAvgWait: number | null;
   avgWaitDeltaVsBaseline: number | null;
+  avgWaitDeltaVsShadow: number | null;
 };
+
+type Capabilities = Record<string, boolean>;
 
 type ApiState = {
   snapshot: GraphSnapshot;
   plan: SignalPlan | null;
   proposedPlan: SignalPlan | null;
   approvalRequired: boolean;
+  capabilities?: Capabilities;
   simulationRunning: boolean;
   hotspotNodeId: string | null;
   emergency: { current_node_id: string; destination_node_id: string } | null;
@@ -71,6 +78,8 @@ function evPosition(
 export default function Home() {
   const [state, setState] = useState<ApiState | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [customFrom, setCustomFrom] = useState<string>("A");
+  const [customTo, setCustomTo] = useState<string>("H");
 
   const fetchState = useCallback(async () => {
     try {
@@ -137,6 +146,7 @@ export default function Home() {
   );
 
   const evPos = state ? evPosition(state.snapshot.nodes, state.emergencyVehicle) : null;
+  const nodeIds = useMemo(() => (state?.snapshot.nodes ?? []).map((n) => n.id), [state?.snapshot.nodes]);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
@@ -146,6 +156,18 @@ export default function Home() {
           Living city network · flow simulation · weighted routing · forecast layer · operator approval
         </p>
         {err && <p className="text-amber-400">API: {err}</p>}
+        {state?.capabilities && (
+          <p className="text-xs text-slate-500">
+            Backend: weighted routing · flow sim · forecast · EV · metrics · logs ·{" "}
+            <span className="text-slate-400">
+              {state.approvalRequired ? "approval required" : "auto-apply plans"}
+            </span>
+            {" · "}
+            <a className="text-blue-400 underline" href={`${API}/api/info`} target="_blank" rel="noreferrer">
+              /api/info
+            </a>
+          </p>
+        )}
       </header>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -154,7 +176,26 @@ export default function Home() {
           <p className="text-2xl font-semibold text-white">
             {state?.metrics.avgWaitGlobal != null ? state.metrics.avgWaitGlobal.toFixed(1) : "—"}s
           </p>
-          {state?.metrics.avgWaitDeltaVsBaseline != null && state.metrics.baselineAvgWait != null ? (
+          {state?.metrics.avgWaitShadow != null ? (
+            <p className="mt-1 text-xs text-slate-500">
+              vs fixed-timing{" "}
+              <span className="font-mono text-slate-200">{state.metrics.avgWaitShadow.toFixed(1)}s</span>{" "}
+              {state.metrics.avgWaitDeltaVsShadow != null ? (
+                <>
+                  (
+                  <span
+                    className={
+                      state.metrics.avgWaitDeltaVsShadow > 0 ? "text-amber-400" : "text-emerald-400"
+                    }
+                  >
+                    {state.metrics.avgWaitDeltaVsShadow > 0 ? "+" : ""}
+                    {state.metrics.avgWaitDeltaVsShadow.toFixed(1)}s
+                  </span>
+                  )
+                </>
+              ) : null}
+            </p>
+          ) : state?.metrics.avgWaitDeltaVsBaseline != null && state.metrics.baselineAvgWait != null ? (
             <p className="mt-1 text-xs text-slate-500">
               vs baseline {state.metrics.baselineAvgWait.toFixed(1)}s (
               <span
@@ -183,6 +224,12 @@ export default function Home() {
           <p className="text-2xl font-semibold text-white">
             {state?.metrics.totalVehicles != null ? state.metrics.totalVehicles.toFixed(0) : "—"}
           </p>
+          {state?.metrics.totalVehiclesShadow != null ? (
+            <p className="mt-1 text-xs text-slate-500">
+              fixed-timing{" "}
+              <span className="font-mono text-slate-200">{state.metrics.totalVehiclesShadow.toFixed(0)}</span>
+            </p>
+          ) : null}
         </div>
         <div className="rounded-xl border border-slate-800 bg-[var(--panel)] p-4">
           <p className="text-xs uppercase text-slate-500">Emergency ETA (proxy)</p>
@@ -399,6 +446,57 @@ export default function Home() {
               >
                 EV C→H (hospital)
               </button>
+              <div className="mt-2 w-full rounded-lg border border-slate-700/80 bg-slate-950/40 p-2">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-slate-500">
+                  Custom EV route
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="text-xs text-slate-400">
+                    From{" "}
+                    <select
+                      className="ml-1 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-white"
+                      value={customFrom}
+                      onChange={(e) => setCustomFrom(e.target.value)}
+                    >
+                      {nodeIds.map((id) => (
+                        <option key={id} value={id}>
+                          {id}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="text-xs text-slate-400">
+                    To{" "}
+                    <select
+                      className="ml-1 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-white"
+                      value={customTo}
+                      onChange={(e) => setCustomTo(e.target.value)}
+                    >
+                      {nodeIds.map((id) => (
+                        <option key={id} value={id}>
+                          {id}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button
+                    type="button"
+                    className="rounded-lg bg-yellow-500 px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-yellow-400 disabled:opacity-50"
+                    disabled={!customFrom || !customTo || customFrom === customTo}
+                    onClick={() =>
+                      void post("/api/emergency", {
+                        current_node_id: customFrom,
+                        destination_node_id: customTo,
+                      })
+                    }
+                  >
+                    Dispatch EV
+                  </button>
+                  <span className="text-xs text-slate-500">
+                    Route appears in Proposed plan + EV marker.
+                  </span>
+                </div>
+              </div>
               <button
                 type="button"
                 className="rounded-lg border border-slate-600 px-3 py-2 text-sm hover:bg-slate-800"
